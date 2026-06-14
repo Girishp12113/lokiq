@@ -262,10 +262,13 @@ export async function updateBookingStatus(bookingId: string, status: "pending" |
 
 // ============ REVIEWS ============
 
-export async function createReview(data: { bookingId: number; customerId: number; providerId: number; rating: number; reviewText?: string }) {
+export async function createReview(data: { bookingId: string; customerId: number; providerId: number; rating: number; reviewText?: string }) {
   const db = await getDb();
   if (!db) return;
-  await db.insert(reviews).values(data);
+  // Resolve string bookingId (LKQ-XXXXXXXX) to numeric booking.id for the reviews FK
+  const booking = await db.select().from(bookings).where(eq(bookings.bookingId, data.bookingId)).limit(1);
+  if (!booking[0]) throw new Error("Booking not found");
+  await db.insert(reviews).values({ ...data, bookingId: booking[0].id });
   
   // Update provider's average rating
   const providerReviews = await db.select().from(reviews).where(eq(reviews.providerId, data.providerId));
@@ -285,10 +288,13 @@ export async function getReviewsByProvider(providerId: number) {
     .orderBy(desc(reviews.createdAt));
 }
 
-export async function getReviewByBooking(bookingId: number) {
+export async function getReviewByBooking(bookingId: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(reviews).where(eq(reviews.bookingId, bookingId)).limit(1);
+  // Resolve string bookingId to numeric ID
+  const booking = await db.select().from(bookings).where(eq(bookings.bookingId, bookingId)).limit(1);
+  if (!booking[0]) return undefined;
+  const result = await db.select().from(reviews).where(eq(reviews.bookingId, booking[0].id)).limit(1);
   return result[0];
 }
 

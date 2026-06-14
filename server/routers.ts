@@ -170,7 +170,7 @@ export const appRouter = router({
   reviews: router({
     create: protectedProcedure
       .input(z.object({
-        bookingId: z.number(),
+        bookingId: z.string(),
         providerId: z.number(),
         rating: z.number().min(1).max(5),
         reviewText: z.string().optional(),
@@ -186,7 +186,7 @@ export const appRouter = router({
         return { success: true };
       }),
     getByBooking: protectedProcedure
-      .input(z.object({ bookingId: z.number() }))
+      .input(z.object({ bookingId: z.string() }))
       .query(async ({ input }) => {
         return db.getReviewByBooking(input.bookingId);
       }),

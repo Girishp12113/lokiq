@@ -64,3 +64,10 @@
 - [x] Auth flow test (me, logout)
 - [x] Admin access control tests
 - [x] Services list and getById tests
+
+## Bug Fixes
+- [x] Fix login loop: redirect using origin from base64 state param instead of hardcoded "/"
+- [x] Fix useAuth localStorage side effect: move localStorage.setItem from useMemo to useEffect
+- [x] Fix missing role guards: add role-based redirect in AdminDashboard and ProviderDashboard
+- [x] Fix role display bug: show "customer" when role is "user" in Profile.tsx badge
+- [x] Fix review bookingId type mismatch: change z.number() to z.string() in reviews.create

@@ -27,8 +27,8 @@ export default function BookingDetail() {
     { enabled: !!params.id }
   );
   const { data: existingReview } = trpc.reviews.getByBooking.useQuery(
-    { bookingId: bookingData?.booking?.id || 0 },
-    { enabled: !!bookingData?.booking?.id && bookingData?.booking?.status === "completed" }
+    { bookingId: bookingData?.booking?.bookingId || "" },
+    { enabled: !!bookingData?.booking?.bookingId && bookingData?.booking?.status === "completed" }
   );
   const createReview = trpc.reviews.create.useMutation();
   const utils = trpc.useUtils();
@@ -44,14 +44,14 @@ export default function BookingDetail() {
     }
     try {
       await createReview.mutateAsync({
-        bookingId: bookingData.booking.id,
+        bookingId: bookingData.booking.bookingId,
         providerId: bookingData.booking.providerId,
         rating,
         reviewText: reviewText || undefined,
       });
       toast.success("Review submitted! Thank you.");
       setShowReview(false);
-      utils.reviews.getByBooking.invalidate({ bookingId: bookingData.booking.id });
+      utils.reviews.getByBooking.invalidate({ bookingId: bookingData.booking.bookingId });
     } catch (e: any) {
       toast.error(e.message || "Failed to submit review");
     }

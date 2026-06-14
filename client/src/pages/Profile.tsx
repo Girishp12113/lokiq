@@ -45,7 +45,7 @@ export default function Profile() {
               <div className="flex-1">
                 <h2 className="font-heading text-lg font-semibold">{user?.name || "User"}</h2>
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="text-xs capitalize">{user?.role || "customer"}</Badge>
+                  <Badge variant="secondary" className="text-xs capitalize">{user?.role === "user" ? "customer" : (user?.role || "customer")}</Badge>
                   {user?.role === "provider" && (
                     <Badge variant="secondary" className="text-xs bg-[#10B981]/10 text-[#10B981]">
                       <Shield className="w-3 h-3 mr-1" /> Verified

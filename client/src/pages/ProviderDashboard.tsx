@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -18,16 +19,14 @@ export default function ProviderDashboard() {
   const updateStatus = trpc.bookings.updateStatus.useMutation();
   const utils = trpc.useUtils();
 
-  if (!authLoading && !isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="p-8 text-center max-w-sm">
-          <h2 className="font-heading text-xl font-semibold mb-2">Sign In</h2>
-          <p className="text-muted-foreground mb-4">Sign in to access your provider dashboard.</p>
-          <a href={getLoginUrl()}><Button className="bg-[#1E40AF]">Sign In</Button></a>
-        </Card>
-      </div>
-    );
+  useEffect(() => {
+    if (!authLoading && (!isAuthenticated || (user && user.role !== "provider" && user.role !== "admin"))) {
+      navigate("/");
+    }
+  }, [authLoading, isAuthenticated, user, navigate]);
+
+  if (!authLoading && (!isAuthenticated || (user && user.role !== "provider" && user.role !== "admin"))) {
+    return null;
   }
 
   if (!authLoading && !providerLoading && !provider) {

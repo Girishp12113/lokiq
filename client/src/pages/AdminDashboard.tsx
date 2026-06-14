@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -31,6 +31,14 @@ export default function AdminDashboard() {
   const utils = trpc.useUtils();
 
   const [selectedProvider, setSelectedProvider] = useState<string>("");
+
+  const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (!authLoading && (!isAuthenticated || (user && user.role !== "admin"))) {
+      navigate("/");
+    }
+  }, [authLoading, isAuthenticated, user, navigate]);
 
   if (!authLoading && (!isAuthenticated || user?.role !== "admin")) {
     return (
