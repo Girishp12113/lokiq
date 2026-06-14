@@ -1,0 +1,26 @@
+OAuth Debug Analysis:
+
+The callback IS being hit (we see the log), but query params are empty.
+This means the Vite dev middleware's catch-all `app.use("*", ...)` is intercepting 
+the /api/oauth/callback route BEFORE Express can process it properly.
+
+Wait - actually looking at the code flow:
+1. registerOAuthRoutes(app) is called BEFORE setupVite(app, server)
+2. So the Express route should match first
+
+But the log shows `req.query` is `{}`. This is suspicious.
+The callback was hit at 11:56:40 - let me check what triggered it.
+
+Actually the issue might be that the browser is hitting the callback URL directly 
+(navigating to it without params) because the OAuth redirect isn't working correctly.
+
+The login URL looks correct:
+- appId=YGJduRXZZJR8EdjxeWGNZN
+- redirectUri=https://3000-isn00dn09kpp9xztigrme-27af1798.sg1.manus.computer/api/oauth/callback
+- state=aHR0cHM6Ly8zMDAwLWlzbjAwZG4wOWtwcDl4enRpZ3JtZS0yN2FmMTc5OC5zZzEubWFudXMuY29tcHV0ZXI=
+
+The issue might be that after the user authenticates with Microsoft/Google, 
+the OAuth server redirects back to the callback URL but the query params get 
+stripped by the proxy/gateway layer.
+
+Let me check if the issue is with the Vite HMR client making requests to the callback URL.

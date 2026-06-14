@@ -10,11 +10,15 @@ function getQueryParam(req: Request, key: string): string | undefined {
 }
 
 export function registerOAuthRoutes(app: Express) {
-  app.get("/api/oauth/callback", async (req: Request, res: Response) => {
-    const code = getQueryParam(req, "code");
-    const state = getQueryParam(req, "state");
+  // Handle both GET and POST for the OAuth callback
+  const handleCallback = async (req: Request, res: Response) => {
+    console.log("[OAuth] Callback received - method:", req.method, "query:", JSON.stringify(req.query), "body:", JSON.stringify(req.body), "url:", req.originalUrl);
+    // Try query params first, then body (some OAuth providers POST the callback)
+    const code = getQueryParam(req, "code") || (req.body && req.body.code);
+    const state = getQueryParam(req, "state") || (req.body && req.body.state);
 
     if (!code || !state) {
+      console.log("[OAuth] Missing code or state. code:", code, "state:", state);
       res.status(400).json({ error: "code and state are required" });
       return;
     }
@@ -44,23 +48,15 @@ export function registerOAuthRoutes(app: Express) {
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-      // Decode the origin from the base64 state param to redirect back to the correct page
-      let redirectUrl = "/";
-      try {
-        const decoded = Buffer.from(state, "base64").toString();
-        if (decoded && decoded.startsWith("/")) {
-          redirectUrl = decoded;
-        } else if (decoded && decoded.startsWith("http")) {
-          const url = new URL(decoded);
-          redirectUrl = url.pathname + url.search + url.hash;
-        }
-      } catch {
-        // fallback to "/" if state decoding fails
-      }
-      res.redirect(302, redirectUrl);
+      // State contains btoa(redirectUri) which is the callback URL itself.
+      // After successful auth, redirect to the app root.
+      res.redirect(302, "/");
     } catch (error) {
       console.error("[OAuth] Callback failed", error);
       res.status(500).json({ error: "OAuth callback failed" });
     }
-  });
+  };
+
+  app.get("/api/oauth/callback", handleCallback);
+  app.post("/api/oauth/callback", handleCallback);
 }

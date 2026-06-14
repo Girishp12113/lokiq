@@ -71,3 +71,4 @@
 - [x] Fix missing role guards: add role-based redirect in AdminDashboard and ProviderDashboard
 - [x] Fix role display bug: show "customer" when role is "user" in Profile.tsx badge
 - [x] Fix review bookingId type mismatch: change z.number() to z.string() in reviews.create
+- [x] Fix OAuth login: getLoginUrl() must build correct redirectUri, add debug logging in callback
